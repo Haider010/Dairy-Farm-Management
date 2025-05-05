@@ -1,6 +1,8 @@
 from sqlalchemy import create_engine, Column, Integer, String, Date, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker, relationship, Session
+from contextlib import contextmanager
+from typing import Generator, Any
 
 # -----------------------------
 # Database Schema Definitions:
@@ -217,11 +219,23 @@ def delete_medicine_record(db_session, record_id):
         db_session.commit()
     return record
 
+# Miscellenous CRUD
+# --------------------
+
+def get_all_animal_names(db: Session):
+    return db.query(Animal.id, Animal.name).all()
+
 # -----------------------------
 # Utility: Session Context
 # -----------------------------
-
-def get_db_session():
+@contextmanager
+def get_db_session() -> Generator[Session, Any, None]:
+    """
+    Context manager to provide a transactional session and ensure closure.
+    Usage:
+        with get_db_session() as db:
+            # use db
+    """
     session = SessionLocal()
     try:
         yield session
